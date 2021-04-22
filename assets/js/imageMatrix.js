@@ -1,27 +1,132 @@
+/* 
+    Project: Demo for Education Horizons Group
+    Sprint: 1
+    Task: 1
+    Author: Vineet W. Singh 
+    Start Date: 20/4/21
+    Date of last edit: 22/4/2021
+    Date of last review:
+*/
+
 //generate combinations of rgb & hsv values in steps of 8
-const getColorArray=()=>{
-    let rgbValues=[];
+const getSortedHSVColorArray=(sorted)=>{
     let hsvValues=[];
+    let red, green, blue;
     //red values step of 8
-    for (let red=8; red<=256; red+=8){
+    for (red=8; red<=256; red+=8){
         //green values step of 8
-        for (let green=8; green<=256; green+=8){
+        for (green=8; green<=256; green+=8){
             //blue values step of 8
-            for (let blue=8; blue<=256; blue+=8){
-                //add to rgb array
-                let rgbVal={r:red-1, g:green-1,b:blue-1}
-                rgbValues.push(rgbVal);
-                //convert to hsv
+            for (blue=8; blue<=256; blue+=8){
                 let hsvVal=rgb2hsv(red-1,green-1,blue-1);
                 //add to hsv array
-                hsvValues.push(hsvVal);
+                hsvValues.push([hsvVal.h,hsvVal.s,hsvVal.v]);
             }
         }    
     }
-    return([rgbValues,hsvValues]);
+    if (sorted) hsvValues=hsvValues.sort(mySort);
+    const colorHexValues=hsvValues.map(item=>HSVtoHEX(item[0]/360,item[1]/100,item[2]/100));
+    return(colorHexValues);
 };
 
-//sourced from the net - source forge: convert rgb to hsv values.
+const getRGBColorArray=()=>{
+    let rgbValues=[];
+    let red, green, blue;
+    //red values step of 8
+    for (red=8; red<=256; red+=8){
+        //green values step of 8
+        for (green=8; green<=256; green+=8){
+            //blue values step of 8
+            for (blue=8; blue<=256; blue+=8){
+                //add to hsv array
+                rgbValues.push([red-1,green-1,blue-1]);
+            }
+        }    
+    }
+    const rgbHexValues=rgbValues.map(item=>RGBtoHex(item[0],item[1],item[2]));
+    return(rgbHexValues);
+};
+
+//get the color array depending on type
+const getColorArray=(sorted)=>{
+    //set which color generating method to use
+    return(getSortedHSVColorArray(sorted));
+};
+
+//custom sort function to sort array on three fields
+const mySort=(a,b)=>{
+    let h1=parseFloat(a[0]);
+    let h2=parseFloat(b[0]);
+    
+    let s1=parseFloat(a[1]);
+    let s2=parseFloat(b[1]);
+
+    let v1=parseFloat(a[2]);
+    let v2=parseFloat(b[2]);
+
+    if (h1<h2) return(-1);
+    else if (h1>h2) return(1);
+    else if (v1<v2) return(-1);
+    else if (v1>v2) return(1);
+    else if (s1>s2) return(-1);
+    else if (s1<s2) return(1);
+    return(0);
+}
+
+/* convert HSV value to hex code - accepts parameters
+ * h  Object = {h:x, s:y, v:z}
+ * OR 
+ * h, s, v (0<= h,s,v <=1)
+*/
+function HSVtoHEX(h, s, v) {
+    let r, g, b, i, f, p, q, t, rHex, gHex, bHex;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    r = Math.round(r * 255);
+    g = Math.round(g * 255);
+    b = Math.round(b * 255);
+    if (r>15) rHex= r.toString(16);
+    else if (r<10) rHex=`0${r}`;
+        else rHex=`${r}`;
+    if (g>15) gHex= g.toString(16);
+    else if (g<10) gHex=`0${g}`;
+        else gHex=`${g}`;
+    if (b>15) bHex=b.toString(16);
+    else if (b<10) bHex=`0${b}`;
+        else bHex=`${b}`;
+    return(`#${rHex}${gHex}${bHex}`);
+}
+
+//convert RGB to hex 
+const RGBtoHex=(r,g,b)=>{
+    let rHex,gHex,bHex;
+    if (r>15) rHex= r.toString(16);
+    else if (r<10) rHex=`0${r}`;
+        else rHex=`${r}`;
+    if (g>15) gHex= g.toString(16);
+    else if (g<10) gHex=`0${g}`;
+        else gHex=`${g}`;
+    if (b>15) bHex=b.toString(16);
+    else if (b<10) bHex=`0${b}`;
+        else bHex=`${b}`;
+    return(`#${rHex}${gHex}${bHex}`);
+};
+
+//convert rgb to hsv values.
 function rgb2hsv (r, g, b) {
     let rabs, gabs, babs, rr, gg, bb, h, s, v, diff, diffc, percentRoundFn;
     rabs = r / 255;
@@ -59,137 +164,55 @@ function rgb2hsv (r, g, b) {
     };
 }//end rgb2hsv
 
-//get all hues in the array of colors
-const getHueValueRange=(hsvValueArray)=>{
-    let hueValues=[];
-    //process all colors in the input array
-    hsvValueArray.forEach(hsvVal=>{
-        // check if return array already has value, if not add it
-        if (!hueValues.includes(hsvVal.h)){
-            hueValues.push(hsvVal.h);
+//get a matrix of colors organised in rows and columns
+export const getImageMatrix=(sorted)=>{
+    const colArray = getColorArray(sorted);
+    let rowItemCount=0,rowCount=0;
+    const rows=[];
+    let cells=[];
+    rows.push(cells);
+    colArray.forEach(item=>{
+        //check if row item count is below 128, the number of horizontal cells in a row
+        if (rowItemCount===128){
+            //start a new row
+            cells=[];
+            rows.push(cells);
+            rowCount++;
+            rowItemCount=0;
         }
+        //no new row needed add color to cells
+        rows[rowCount].push(item);
+        rowItemCount++;
     });
-    //sort the return values in the array
-    hueValues=hueValues.sort((a,b)=>a-b);
-    return(hueValues);
-};
-
-//get all values in the array of colors
-const getValValueRange=(hsvValueArray)=>{
-    let valValues=[];
-    //process all colors in the input array
-    hsvValueArray.forEach(hsvVal=>{
-        // check if return array already has value, if not add it
-        if (!valValues.includes(hsvVal.v)){
-            valValues.push(hsvVal.v);
-        }
-    });
-    //sort the return values in the array
-    valValues=valValues.sort((a,b)=>a-b);
-    return(valValues);
-};
-
-//get all saturations in the array of colors
-const getSatValueRange=(hsvValueArray)=>{
-    let satValues=[];
-    //process all colors in the input array
-    hsvValueArray.forEach(hsvVal=>{
-        // check if return array already has value, if not add it
-        if (!satValues.includes(hsvVal.s)){
-            satValues.push(hsvVal.s);
-        }
-    });
-    //sort the return values in the array
-    satValues=satValues.sort((a,b)=>a-b);
-    return(satValues);
-};
-
-const randomValue = (start,multiplier) => Math.floor((Math.random()+start)*multiplier);
-
-
-export const getImageMatrix = () => {
-    //colors is an array of arrays which stores colors in two arrays of [0]rgb values and [1]hsv values
-    //generated by combining different rgb values
-    let colorsHSV=getColorArray()[1];
-    //variable for row height
-    let height=5;
-    //varibale for cell width
-    let width=5;
-    //cell count for debugging
-    let cellCount=0;
-    // start a new array which will store each row of image
-    let rows=[];
-    //start a variable to count all rows
-    let rowCount=0;
-    // add an initial item to rows
-    rows.push({
-        row: rowCount,
-        rowItemCount:0,
-        rowHieght:height,
-        cells:[]
-    });
-    // start a variable to keep row items in check
-    let rowItemCount=0;
-    // get all hue values in the colors array 
-    let hues=getHueValueRange(colorsHSV);
-    //Process all hues
-    while (hues.length>0){
-        //set a current hue
-        let currentHue=hues.shift();
-        //get all colors with the current hue
-        let hueColors=colorsHSV.filter(item=>item.h===currentHue);
-        //get all value vals associated with this hue
-        let vals=getValValueRange(hueColors);
-        // process all value vals associated with this hue
-        while (vals.length>0){
-            //set a current value associated with this hue
-            let currentValue=vals.shift();
-            //get all colors with this hue and value
-            let valColors=colorsHSV.filter(item=>item.h===currentHue&&item.v===currentValue);
-            //get all saturation values associated with this hue and value
-            let sats=getSatValueRange(valColors);
-            //sort this sats array in descending order
-            sats=sats.reverse();
-            //process all saturation values associated with this hue and value
-            while (sats.length>0){
-                let currentSat=sats.shift();
-                //there should be only one color with this hue, value and saturation, get it
-                let cellColor=colorsHSV.filter(item=>item.h===currentHue&&item.v===currentValue&&item.s===currentSat)[0];
-                //add this to the rows
-                //first check to see if there is room in this row
-                if (rowItemCount===128){
-                    //row is full start a new row
-                    rowCount++;
-                    rows.push({
-                        row: rowCount,
-                        rowItemCount:0,
-                        rowHieght:height,
-                        cells:[]
-                    });
-                    rowItemCount=0;
-                }
-                //add the cellColor to the cols array of the current row
-                rows[rowCount].cells.push({
-                    cellColor:cellColor,
-                    cellWidth:width
-                });
-                //increase rowItemCount by 1
-                rowItemCount++;
-                rows[rowCount].rowItemCount = rowItemCount;                
-                //remove this color from the original colorHSV array
-                //get index of color to remove
-                let index = colorsHSV.findIndex(item=>item.h===currentHue&&item.v===currentValue&&item.s===currentSat);
-                //splice the array
-                colorsHSV.splice(index,1);
-                //cell count 
-                cellCount++;
-                //console.log(`Cell Count: ${cellCount}, H:${cellColor.h},S:${cellColor.s},V:${cellColor.v}`);
-            }//end process all saturation values (for current hue and value)
-        }//end process all values (for current hue)
-    }//end process all hues  
-    //console.log(`No of rows: ${rows.length}`);
     return(rows);
-}
+};
+
+/*used to test functions
+const getRectArrays=()=>{
+    const cellHeight=4, cellWidth=6;
+    //get image colors
+    const imageMatrixRows = getImageMatrix();
+    let cellY=0,rowCtr=0;
+    imageMatrixRows.forEach(cells=>{
+        //for a new row reset the X value to 0, cell counter that will calculate starting position of X to 0
+        let cellX=0, cellCtr=0;
+        //calculate where the new starting Y value is 
+        cellY=cellHeight*rowCtr;
+        cells.forEach(cell=>{
+            cellX=cellWidth*cellCtr;
+            if (cellCtr%16===0){
+                console.log([rowCtr,cellCtr,cellX,cellY,cell]);
+            }
+            cellCtr++;
+        });
+        rowCtr++;
+    });
+};*/
+
+//getColorArray().forEach(color=>console.log(color));
+
+
+
 
 
 
