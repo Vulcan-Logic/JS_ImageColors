@@ -25,7 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 const setCanvas=(sorted)=>{
     //set cell heights and width
-    const cellHeight=2, cellWidth=4;
+    const cellHeight=2, cellWidth=2;
     //get image colors
     const imageMatrixRows = getImageMatrix(sorted);
     //get canvas ref
